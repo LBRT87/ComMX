@@ -7,10 +7,15 @@ jobs:
   ci:
     runs-on: docker
     container:
-      image: docker:24-cli
+      image: node:20-bullseye
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install Docker CLI 
+        run:
+          apt-get update
+          apt-get install -y docker.io
 
       - name: GitLeaks Scan
         run: |
