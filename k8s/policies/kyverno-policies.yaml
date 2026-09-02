@@ -1,0 +1,69 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Menggunakan tag ':latest' tidak diizinkan. Gunakan tag versi spesifik (misal: :1.21 atau :alpine)."
+        pattern:
+          spec:
+            (containers):
+              - image: "!*:latest"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-default-namespace
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-namespace
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+                - Deployment
+                - StatefulSet
+                - Service
+      validate:
+        message: "Membuat resource di namespace 'default' dilarang. Silakan gunakan namespace 'commx' atau 'monitoring'."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.namespace }}"
+                operator: Equals
+                value: default
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-app-label
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-app-name-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - Service
+      validate:
+        message: "Resource wajib memiliki metadata label 'app.kubernetes.io/name'."
+        pattern:
+          metadata:
+            labels:
+              app.kubernetes.io/name: "?*"

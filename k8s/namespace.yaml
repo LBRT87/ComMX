@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: commx
+  labels: 
+    app.kubernetes.io/name: commx
+    app.kubernetes.io/part-of: commx
+    environment: production
+
+    

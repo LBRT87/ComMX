@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - config/configmap.yaml
+  - postgres/service.yaml
+  - postgres/statefulset.yaml
+  - redis/service.yaml
+  - redis/statefulset.yaml
+  - backend/service.yaml
+  - backend/deployment.yaml
+  - backend/hpa.yaml
+  - frontend/service.yaml
+  - frontend/deployment.yaml
+  - frontend/hpa.yaml
+  - gateway/metallb.yaml
+  - gateway/gateway.yaml
+  - gateway/httproute.yaml
+  - policies/kyverno-policies.yaml
+  - policies/networkpolicy.yaml
