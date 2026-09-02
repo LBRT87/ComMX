@@ -20,3 +20,4 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 /.env
+k8s/config/secret.yaml
