@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'http://<ForgejoIP>/git/commx-k8s.git'
+    repoURL: 'http://192.168.2.5:3000/prk/tpaonsite.git'
     targetRevision: main
     path: k8s
   destination:
