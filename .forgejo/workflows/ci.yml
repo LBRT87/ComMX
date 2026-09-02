@@ -1,0 +1,58 @@
+name: CI-CD
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: docker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: GitLeaks Scan
+        run: |
+          docker run --rm -v $PWD:/repo zricethezav/gitleaks:latest detect --source=/repo --no-git -v
+
+      - name: Semgrep Scan
+        run: |
+          docker run --rm -v $PWD:/src returntocorp/semgrep semgrep --config=auto /src
+
+      - name: Trivy Filesystem Scan
+        run: |
+          docker run --rm -v $PWD:/repo aquasec/trivy fs --severity HIGH,CRITICAL /repo
+
+      - name: Build Backend Image
+        run: docker build -t 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }} ./backend
+
+      - name: Build Frontend Image
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SOCKET_URL=wss://ComMX.local.com/frontend \
+            --build-arg NEXT_PUBLIC_BACKEND_URL=https://ComMX.local.com/api \
+            -t 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }} ./frontend
+
+      - name: Trivy Image Scan
+        run: |
+          docker run --rm aquasec/trivy image 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }}
+          docker run --rm aquasec/trivy image 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }}
+
+      - name: Push to Registry
+        run: |
+          echo "kelargacor" | docker login 192.168.2.5:5000 -u Group-1 --password-stdin
+          docker push 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }}
+          docker push 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }}
+
+      - name: Checkov IaC Scan
+        run: |
+          docker run --rm -v $PWD/k8s:/k8s bridgecrew/checkov -d /k8s --skip-path /k8s/config/secret.example.yaml
+
+      - name: Update K8s Manifest
+        run: |
+          sed -i "s|commx-backend:.*|commx-backend:${{ gitea.sha }}|" k8s/backend/deployment.yaml
+          sed -i "s|commx-frontend:.*|commx-frontend:${{ gitea.sha }}|" k8s/frontend/deployment.yaml
+          git config user.email "ci-bot@forgejo.local"
+          git config user.name "CI Bot"
+          git add k8s/backend/deployment.yaml k8s/frontend/deployment.yaml
+          git commit -m "ci: update image tag to ${{ gitea.sha }}"
+          git push http://ci-bot:${{ secrets.CI_TOKEN }}@192.168.2.5:3000/prk/tpaonsite.git main
