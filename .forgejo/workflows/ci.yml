@@ -34,7 +34,7 @@ jobs:
       - name: Build Frontend Image
         run: |
           docker build \
-            --build-arg NEXT_PUBLIC_SOCKET_URL=wss://ComMX.local.com/frontend \
+            --build-arg NEXT_PUBLIC_SOCKET_URL=wss://ComMX.local.com \
             --build-arg NEXT_PUBLIC_BACKEND_URL=https://ComMX.local.com/api \
             -t 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }} ./frontend
 
