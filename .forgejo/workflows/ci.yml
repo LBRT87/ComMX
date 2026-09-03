@@ -26,7 +26,7 @@ jobs:
 
       - name: Trivy Filesystem Scan
         run: |
-          docker run --rm -v $PWD:/repo aquasec/trivy fs --severity HIGH,CRITICAL /repo
+          docker run --rm -v $PWD:/repo -v trivy-cache:/root/.cache/trivy aquasec/trivy fs --severity HIGH,CRITICAL /repo
 
       - name: Build Backend Image
         run: docker build -t 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }} ./backend
@@ -40,8 +40,8 @@ jobs:
 
       - name: Trivy Image Scan
         run: |
-          docker run --rm aquasec/trivy image 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }}
-          docker run --rm aquasec/trivy image 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }}
+          docker run --rm -v trivy-cache:/root/.cache/trivy aquasec/trivy image 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }}
+          docker run --rm -v trivy-cache:/root/.cache/trivy aquasec/trivy image 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }}
 
       - name: Push to Registry
         run: |
