@@ -15,6 +15,16 @@ spec:
         - path:
             type: PathPrefix
             value: /api
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: backend
+          port: 3000
+    - matches:
         - path:
             type: PathPrefix
             value: /socket.io
