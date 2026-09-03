@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: backend
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: commx
+    app: backend
+    owner: prk
 spec:
   type: ClusterIP
   selector:

@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: frontend
     app.kubernetes.io/component: web
     app.kubernetes.io/part-of: commx
+    app: frontend
+    owner: prk
 spec:
   replicas: 2
   strategy:
@@ -24,6 +26,8 @@ spec:
         app.kubernetes.io/name: frontend
         app.kubernetes.io/component: web
         app.kubernetes.io/part-of: commx
+        app: frontend
+        owner: prk
     spec:
       containers:
         - name: frontend

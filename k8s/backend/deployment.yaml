@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: backend
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: commx
+    app: backend
+    owner: prk
 spec:
   replicas: 2
   strategy:
@@ -24,7 +26,9 @@ spec:
         app.kubernetes.io/name: backend
         app.kubernetes.io/component: api
         app.kubernetes.io/part-of: commx
-    spec:
+        app: backend
+        owner: prk
+     spec:
       containers:
         - name: backend
           image: 192.168.2.5:5000/group-2/commx-backend:965873c06d01a2b350f47204c2450a5a6c1413cc

@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: frontend
   namespace: commx
+  app: frontend
+  owner: prk
   labels:
     app.kubernetes.io/name: frontend
     app.kubernetes.io/component: web
