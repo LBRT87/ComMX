@@ -44,6 +44,8 @@ spec:
                 secretKeyRef:
                   name: commx-secret
                   key: POSTGRES_DB
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           readinessProbe:
             exec:
               command:
@@ -70,7 +72,6 @@ spec:
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
-
   volumeClaimTemplates:
     - metadata:
         name: postgres-data
