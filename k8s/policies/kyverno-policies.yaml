@@ -61,6 +61,11 @@ spec:
                 - Deployment
                 - StatefulSet
                 - Service
+      exclude:
+        any:
+          - resources:
+              names:
+                - "cilium-gateway-*"
       validate:
         message: "Resource wajib memiliki metadata label 'app.kubernetes.io/name'."
         pattern:
