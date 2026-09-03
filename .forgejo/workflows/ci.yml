@@ -40,8 +40,8 @@ jobs:
 
       - name: Trivy Image Scan
         run: |
-          docker run --rm -v trivy-cache:/root/.cache/trivy aquasec/trivy image 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }}
-          docker run --rm -v trivy-cache:/root/.cache/trivy aquasec/trivy image 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }}
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/trivy aquasec/trivy image 192.168.2.5:5000/group-2/commx-backend:${{ gitea.sha }}
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/trivy aquasec/trivy image 192.168.2.5:5000/group-2/commx-frontend:${{ gitea.sha }}
 
       - name: Push to Registry
         run: |
