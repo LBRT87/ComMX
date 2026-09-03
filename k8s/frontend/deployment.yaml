@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 192.168.2.5:5000/group-2/commx-frontend:cf0d847cf8d434683f201ebdb22c11a5313a1155
+          image: 192.168.2.5:5000/group-2/commx-frontend:25f78d6d635a91c4e4332d0616ee1dcb7c809ae2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
