@@ -53,6 +53,8 @@ spec:
                 - -c
                 - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
             initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
             periodSeconds: 10
           livenessProbe:
             exec:
@@ -61,6 +63,8 @@ spec:
                 - -c
                 - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
             initialDelaySeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 6
             periodSeconds: 20
           resources:
             requests:
