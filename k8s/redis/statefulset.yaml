@@ -21,6 +21,8 @@ spec:
         app.kubernetes.io/component: cache
         app.kubernetes.io/part-of: commx
     spec:
+      securityContext:
+        fsGroup: 999
       containers:
         - name: redis
           image: redis:7.2.5
