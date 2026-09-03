@@ -13,5 +13,6 @@ kind: L2Advertisement
 metadata:
   name: commx-l2
   namespace: metallb-system
+spec:
   ipAddressPools:
-    - commx-pool 
+    - commx-pool

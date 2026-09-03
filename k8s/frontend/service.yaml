@@ -3,12 +3,12 @@ kind: Service
 metadata:
   name: frontend
   namespace: commx
-  app: frontend
-  owner: prk
   labels:
     app.kubernetes.io/name: frontend
     app.kubernetes.io/component: web
     app.kubernetes.io/part-of: commx
+    app: frontend
+    owner: prk
 spec:
   type: ClusterIP
   selector:
