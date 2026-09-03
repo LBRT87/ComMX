@@ -31,7 +31,7 @@ spec:
      spec:
       containers:
         - name: backend
-          image: 192.168.2.5:5000/group-2/commx-backend:965873c06d01a2b350f47204c2450a5a6c1413cc
+          image: 192.168.2.5:5000/group-2/commx-backend:4f74f7f3fcc588d11468a376d4cb664d71e837a2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
