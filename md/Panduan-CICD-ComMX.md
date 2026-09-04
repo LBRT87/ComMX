@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ## DAFTAR IP & KREDENSIAL
+=======
+## DAFTAR IP & KREDENSIAL 
+>>>>>>> fee59e411055fa090e48273e17c262650c36fa6b
 
 ```
 Forgejo (Git + CI)  : 192.168.2.5:3000     (admin: prk)
