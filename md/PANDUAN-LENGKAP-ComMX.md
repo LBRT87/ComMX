@@ -1,13 +1,3 @@
-# PANDUAN LENGKAP CI/CD ComMX — Group-2 (Net 26-1 Onsite)
-
-Dokumen tunggal berisi SEMUA yang dibutuhkan: dari setup disk VM, bangun CI/CD,
-deploy ke Kubernetes, sampai aplikasi bisa diakses dari browser — plus daftar
-30 error & solusi, dan jawaban konsep untuk sesi tanya jawab.
-
-> Catatan: dokumen Ansible (K2Help) TERPISAH, tidak digabung ke sini.
-
----
-
 ## DAFTAR ISI
 1. Info penting (IP, kredensial)
 2. Arsitektur singkat
@@ -698,3 +688,166 @@ Backup command untuk tarik ke laptop:
 scp forgejo@192.168.2.5:/home/forgejo/backup-tpa.tar.gz D:\LatihanOnsiteNetwork\
 ```
 ```
+
+---
+
+# 17. SEMUA FILE YANG PERLU DIBUAT (checklist + lokasi + cara)
+
+Daftar tunggal semua file yang HARUS dibuat manual saat setup (tidak datang otomatis
+dari clone repo). Urut sesuai kapan dibutuhkan.
+
+## A. Di VM FORGEJO
+
+### A1. docker-compose / folder data Forgejo — OTOMATIS
+- Lokasi: `/root/cicd/forgejo-data/`
+- Cara: otomatis dibuat saat `docker run forgejo` (Bagian 4.3). Tidak perlu bikin manual.
+
+### A2. htpasswd (password registry) — BUAT MANUAL
+- Lokasi: `/home/forgejo/registry/auth/htpasswd`
+- Cara:
+```bash
+mkdir -p /home/forgejo/registry/auth
+docker run --rm --entrypoint htpasswd httpd:2 -Bbn Group-2 kelargacor \
+  > /home/forgejo/registry/auth/htpasswd
+```
+
+### A3. Sertifikat registry (domain.crt + domain.key) — BUAT MANUAL
+- Lokasi: `/home/forgejo/registry/certs/domain.crt` & `domain.key`
+- Cara:
+```bash
+mkdir -p /home/forgejo/registry/certs
+openssl req -newkey rsa:4096 -nodes -sha256 \
+  -keyout /home/forgejo/registry/certs/domain.key \
+  -x509 -days 365 -out /home/forgejo/registry/certs/domain.crt \
+  -subj "/CN=<IP-REGISTRY>" -addext "subjectAltName=IP:<IP-REGISTRY>"
+```
+
+### A4. config.yml runner — GENERATE lalu EDIT
+- Lokasi: `/home/forgejo/config.yml`
+- Cara:
+```bash
+forgejo-runner generate-config > /home/forgejo/config.yml
+nano /home/forgejo/config.yml
+```
+- Isi MINIMAL yang penting (sisanya boleh default):
+```yaml
+log:
+  level: info
+runner:
+  file: .runner
+  capacity: 1
+  timeout: 3h
+  fetch_timeout: 5s
+  fetch_interval: 2s
+  labels: []
+cache:
+  enabled: true
+container:
+  valid_volumes:
+    - /var/run/docker.sock      # <-- WAJIB, ini yang bikin pipeline bisa akses docker
+host:
+  workdir_parent:
+```
+
+### A5. .runner (hasil registrasi) — OTOMATIS
+- Lokasi: `/home/forgejo/.runner`
+- Cara: otomatis saat `forgejo-runner register ...` (Bagian 4.5). Jangan diisi manual.
+
+### A6. service systemd runner — BUAT MANUAL
+- Lokasi: `/etc/systemd/system/forgejo-runner.service`
+- Cara: lihat Bagian 4.5 (blok `tee ... forgejo-runner.service`).
+
+### A7. /etc/docker/daemon.json — BUAT MANUAL (hanya jika registry HTTP tanpa TLS)
+- Lokasi: `/etc/docker/daemon.json`
+- Cara (SKIP kalau pakai TLS seperti panduan ini):
+```json
+{ "insecure-registries": ["<IP-REGISTRY>:5000"] }
+```
+
+## B. Di dalam REPO (folder ComMX)
+
+### B1. secret.yaml (credential DB) — BUAT MANUAL, gitignored
+- Lokasi: `k8s/config/secret.yaml`
+- Cara:
+```bash
+cp k8s/config/secret.example.yaml k8s/config/secret.yaml
+nano k8s/config/secret.yaml     # isi nilai, SOCKET_ORIGIN huruf kecil
+```
+- Pastikan ada di `.gitignore`: `k8s/config/secret.yaml`
+
+### B2. Dockerfile backend & frontend — SUDAH di repo (tinggal cek benar)
+- Lokasi: `backend/Dockerfile`, `frontend/Dockerfile`
+- Cek: CMD backend `dist/src/main`, frontend standalone (Bagian 6).
+
+### B3. .forgejo/workflows/ci.yml — SUDAH di repo (tinggal ganti nilai)
+- Lokasi: `.forgejo/workflows/ci.yml`
+- Ganti: IP, username Group, path image, domain (lihat dokumen PERSIAPAN-UJIAN).
+
+## C. Di FORGEJO (lewat UI, bukan file)
+
+### C1. CI_TOKEN — BUAT MANUAL
+- Lokasi: Forgejo UI -> Settings -> Applications -> Generate Token (scope write:repository)
+- Simpan di: Repo -> Settings -> Actions -> Secrets -> nama `CI_TOKEN`
+- WAJIB, tanpa ini step "Update K8s Manifest" gagal.
+
+## D. Di CLUSTER (lewat kubectl, bukan file di repo)
+
+### D1. kubeconfig — AMBIL dari control plane
+- Lokasi: `~/.kube/config` (di VM yang jalankan kubectl)
+- Cara: copy isi `/etc/kubernetes/admin.conf` dari control plane.
+
+### D2. Secret registry-credentials — BUAT MANUAL
+```bash
+kubectl create secret docker-registry registry-credentials \
+  --docker-server=<IP-REGISTRY>:5000 \
+  --docker-username=Group-2 --docker-password=kelargacor -n commx
+```
+
+### D3. Secret commx-secret (DB) — dari secret.yaml
+```bash
+kubectl apply -f k8s/config/secret.yaml
+```
+
+### D4. Secret commx-tls-cert (TLS Gateway) — BUAT MANUAL
+```bash
+openssl req -newkey rsa:2048 -nodes -keyout /tmp/tls.key \
+  -x509 -days 365 -out /tmp/tls.crt \
+  -subj "/CN=<domain>" -addext "subjectAltName=DNS:<domain>"
+kubectl create secret tls commx-tls-cert --cert=/tmp/tls.crt --key=/tmp/tls.key -n commx
+```
+
+## E. Di TIAP NODE K8S (6 node) — BUAT MANUAL / via Ansible
+
+### E1. ca.crt registry
+- Lokasi: `/etc/containerd/certs.d/<IP-REGISTRY>:5000/ca.crt`
+  dan `/usr/local/share/ca-certificates/registry-<ip>.crt`
+
+### E2. hosts.toml
+- Lokasi: `/etc/containerd/certs.d/<IP-REGISTRY>:5000/hosts.toml`
+- Cara: lihat Bagian 9.5. (Kalau pakai Ansible K2Help, ini otomatis.)
+
+---
+
+## CHECKLIST FILE YANG DIBUAT (centang saat ujian)
+
+VM Forgejo:
+- [ ] htpasswd (A2)
+- [ ] domain.crt + domain.key (A3)
+- [ ] config.yml runner + edit valid_volumes (A4)
+- [ ] forgejo-runner.service systemd (A6)
+
+Repo:
+- [ ] secret.yaml (B1) + pastikan gitignored
+- [ ] cek Dockerfile & ci.yml, ganti semua nilai environment
+
+Forgejo UI:
+- [ ] CI_TOKEN (C1)
+
+Cluster:
+- [ ] kubeconfig (D1)
+- [ ] secret registry-credentials (D2)
+- [ ] secret commx-secret (D3)
+- [ ] secret commx-tls-cert (D4)
+
+Tiap node (atau via Ansible):
+- [ ] ca.crt + hosts.toml di 6 node (E1, E2)
