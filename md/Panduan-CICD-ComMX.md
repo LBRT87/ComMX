@@ -1,11 +1,4 @@
-# Panduan Lengkap CI/CD Pipeline — ComMX (Net 26-1 Onsite)
-
-Dokumen ini merangkum seluruh langkah membangun CI/CD pipeline dari nol sampai aplikasi
-bisa diakses dari browser, plus daftar semua error yang muncul beserta solusinya.
-
----
-
-## DAFTAR IP & KREDENSIAL (hafalkan / catat terpisah)
+## DAFTAR IP & KREDENSIAL
 
 ```
 Forgejo (Git + CI)  : 192.168.2.5:3000     (admin: prk)
